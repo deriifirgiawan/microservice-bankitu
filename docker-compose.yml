@@ -1,0 +1,110 @@
+services:
+  discovery-server:
+    build:
+      context: ./discovery-server
+      dockerfile: Dockerfile
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - bankitu-network
+    environment:
+      - EUREKA_SERVER_PORT=8761
+
+  kafka:
+    image: apache/kafka:3.9.0
+    container_name: kafka
+    environment:
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_LISTENER_PORT: 9092
+      KAFKA_ADVERTISED_LISTENER: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER: PLAINTEXT://0.0.0.0:9092
+      KAFKA_KRAFT_MODE: "true"
+      KAFKA_NODE_ID: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/logs
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: "false"
+    volumes:
+      - /tmp/kafka-logs:/var/lib/kafka/logs
+      - /tmp/kafka-metadata:/var/lib/kafka/metadata
+    ports:
+      - "9092:9092"
+    networks:
+      - kafka-net
+
+  user-db:
+    image: postgres:15
+    container_name: user-db
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: db_bankitu_user
+    ports:
+      - "5432:5432"
+    networks:
+      - bankitu-network
+    volumes:
+      - user-data:/var/lib/postgresql/data
+
+  account-db:
+    image: postgres:15
+    container_name: account-db
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: db_bankitu_account
+    ports:
+      - "5433:5432"
+    networks:
+      - bankitu-network
+    volumes:
+      - account-data:/var/lib/postgresql/data
+
+  transaction-db:
+    image: postgres:15
+    container_name: transaction-db
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: db_bankitu_transaction
+    ports:
+      - "5434:5432"
+    networks:
+      - bankitu-network
+    volumes:
+      - transaction-data:/var/lib/postgresql/data
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_SERVER=${EUREKA_SERVER}
+      - JWT_SECRET=${JWT_SECRET}
+    networks:
+      - bankitu-network
+    depends_on:
+      - discovery-server
+
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3000:3000"
+    networks:
+      - bankitu-network
+    depends_on:
+      - discovery-server
+
+networks:
+  kafka-net:
+    driver: bridge
+  bankitu-network:
+    driver: bridge
+
+volumes:
+  user-data:
+  account-data:
+  transaction-data:
