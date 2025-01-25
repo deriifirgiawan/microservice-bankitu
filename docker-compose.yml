@@ -98,6 +98,67 @@ services:
     depends_on:
       - discovery-server
 
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    networks:
+      - bankitu-network
+    depends_on:
+      - discovery-server
+      - user-db
+    environment:
+      - EUREKA_SERVER=${EUREKA_SERVER}
+      - DATABASE_HOST=user-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=db_bankitu_user
+      - DATABASE_USER=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+
+  account-service:
+    build:
+      context: ./account-service
+    container_name: account-service
+    ports:
+      - "8082:8082"
+    networks:
+      - bankitu-network
+      - kafka-net
+    depends_on:
+      - discovery-server
+      - account-db
+      - kafka
+    environment:
+      - EUREKA_SERVER=${EUREKA_SERVER}
+      - DATABASE_HOST=account-db
+      - DATABASE_PORT=5433
+      - DATABASE_NAME=db_bankitu_account
+      - DATABASE_USER=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+
+  transaction-service:
+    build:
+      context: ./transaction-service
+    container_name: transaction-service
+    ports:
+      - "8083:8083"
+    networks:
+      - bankitu-network
+      - kafka-net
+    depends_on:
+      - discovery-server
+      - account-db
+      - kafka
+    environment:
+      - EUREKA_SERVER=${EUREKA_SERVER}
+      - DATABASE_HOST=transaction-db
+      - DATABASE_PORT=5434
+      - DATABASE_NAME=db_bankitu_transaction
+      - DATABASE_USER=${DATABASE_USERNAME}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+
 networks:
   kafka-net:
     driver: bridge
