@@ -1,6 +1,6 @@
 #!/bin/bash
 
-services=("discovery-server" "api-gateway" "user-service" "account-service" "transaction-service")
+services=("discovery-server" "api-gateway" "auth-service" "user-service" "account-service" "transaction-service")
 
 for service in "${services[@]}"
 do

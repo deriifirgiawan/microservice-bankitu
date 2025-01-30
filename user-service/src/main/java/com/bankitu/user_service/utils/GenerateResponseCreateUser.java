@@ -5,7 +5,6 @@ import com.bankitu.user_service.dto.ResponseCreateUserDetail;
 import com.bankitu.user_service.entity.user.User;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 
 @Component
 public class GenerateResponseCreateUser {

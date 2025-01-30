@@ -6,7 +6,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -18,48 +17,39 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
+
     private static final Date EXPIRED_DATE = new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000L);
 
     @Value("${application.security.jwt.secret-key}")
     private String SECRET_KEYS;
 
-    public String extractUsername(String token) {
+    public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public <T> T extractClaim(
-            String token,
-            Function<Claims, T> claimsResolver
-    ) {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    public String generateToken(String userId) {
+        return generateToken(new HashMap<>(), userId);
     }
 
-    public String generateToken(
-            Map<String, Objects> extraClaims,
-            UserDetails userDetails
-    ) {
-        return buildToken(new HashMap<>(), userDetails, EXPIRED_DATE);
+    public String generateToken(Map<String, Object> extraClaims, String userId) {
+        return buildToken(extraClaims, userId, EXPIRED_DATE);
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()));
+    public boolean isTokenValid(String token, String userId) {
+        final String username = extractUserId(token);
+        return (username.equals(userId));
     }
 
-    public String buildToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails,
-            Date expiration
-    ) {
+    public String buildToken(Map<String, Object> extraClaims, String userId, Date expiration) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(userId)  // We use userId (or email, etc.)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(expiration)
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
