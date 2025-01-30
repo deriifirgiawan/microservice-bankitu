@@ -1,5 +1,6 @@
-package com.bankitu.auth_service.configs;
+package com.bankitu.account_service.configs;
 
+import com.bankitu.account_service.libs.JwtAuthenticatedFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,14 +9,13 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private static final String[] WHITE_LIST_URL = {
-            "/auth/**",
-    };
+    private final JwtAuthenticatedFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -23,11 +23,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers(WHITE_LIST_URL)
-                                .permitAll()
                                 .anyRequest()
                                 .authenticated()
-                ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
+
