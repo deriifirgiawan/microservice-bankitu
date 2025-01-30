@@ -1,5 +1,6 @@
 package com.bankitu.user_service.dto;
 
+import com.bankitu.user_service.entity.user.UserDetail;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

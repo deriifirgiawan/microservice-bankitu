@@ -31,4 +31,6 @@ public class CreateUser {
 
     @NotBlank
     private String mother_name;
+
+    private CreateAccount create_account;
 }
