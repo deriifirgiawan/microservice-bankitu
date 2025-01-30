@@ -1,4 +1,4 @@
-package com.bankitu.transaction_service;
+package com.bankitu.transaction_service.service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
